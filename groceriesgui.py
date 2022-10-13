@@ -6,8 +6,9 @@ import os
 root = tk.Tk()
 root.geometry("850x850")
 
-entryFrame = tk.Frame(root, bg="#263D42")
-entryFrame.place(relwidth=1, relheight=1)
+entryFrame = tk.Frame(root, bg="#263D42", height=500)
+entryFrame.grid(row=0, column=0, sticky='ew')
+root.grid_columnconfigure(0, weight=1)
 
 
 itemLabel = tk.Label(entryFrame, text="Item")
@@ -38,13 +39,13 @@ ebtEntry.grid(row=4, column=1)
 itemsList = []
 
 buttonFrame = tk.Frame(root, bg="red")
-buttonFrame.place(x=0, y=150)
+buttonFrame.place(x=100, y=150)
 
 # For ebt param - F: SNAP eligible not taxed, B: SNAP eligible taxed, T: Taxable (not SNAP eligible)
 def addItem(itemName, quantity, cost, owners, ebt):
     itemDict = dict(item = itemName, quantity = quantity, cost = cost * quantity, owners = owners, snapEligible = ebt)
     itemsList.append(itemDict)
-    print(itemDict)
+    # print(itemDict)
     print(itemsList)
     itemsLabel = tk.Label(buttonFrame, text=itemDict)
     itemsLabel.pack()
@@ -53,6 +54,11 @@ def addItem(itemName, quantity, cost, owners, ebt):
     costEntry.delete(0, END)
     ownersEntry.delete(0, END)
     ebtEntry.delete(0, END)
+
+def deleteLastItem():
+    itemsList.pop()
+    packSlaves = buttonFrame.pack_slaves()
+    packSlaves[-1].destroy()
 
 def calculateDebts():
     ownerDebtA = 0
@@ -92,7 +98,10 @@ def calculateDebts():
 addItemButton = tk.Button(buttonFrame, text="Add Item", padx=50, pady=5, command=lambda: addItem(itemEntry.get(), int(quantityEntry.get()), round(float(costEntry.get()), 2), ownersEntry.get().split(), ebtEntry.get()))
 addItemButton.pack()
 
-calculateButton = tk.Button(buttonFrame, text="Calculate", command=lambda: calculateDebts())
+deleteLastItemButton = tk.Button(buttonFrame, text="Delete Last Item", padx=50, pady=5, command=lambda: deleteLastItem())
+deleteLastItemButton.pack()
+
+calculateButton = tk.Button(buttonFrame, text="Calculate", padx=50, pady=5, command=lambda: calculateDebts())
 calculateButton.pack()
 
 root.mainloop()
