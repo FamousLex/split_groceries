@@ -2,48 +2,54 @@ import tkinter as tk
 from tkinter import *
 import os
 
-
+#grid and layout
 root = tk.Tk()
 root.geometry("850x850")
 
 entryFrame = tk.Frame(root, bg="#263D42", height=500)
 entryFrame.grid(row=0, column=0, sticky='ew')
 root.grid_columnconfigure(0, weight=1)
-
+entryFrame.grid_columnconfigure(0, weight=1)
 
 itemLabel = tk.Label(entryFrame, text="Item")
 itemLabel.grid(row=0, column=0)
-itemEntry = tk.Entry(entryFrame, width=25)
+itemEntry = tk.Entry(entryFrame, width=50)
 itemEntry.grid(row=0, column=1)
 
 quantityLabel = tk.Label(entryFrame, text="Quantity")
 quantityLabel.grid(row=1, column=0)
-quantityEntry = tk.Entry(entryFrame, width=25)
+quantityEntry = tk.Entry(entryFrame, width=50)
 quantityEntry.grid(row=1, column=1)
 
 costLabel = tk.Label(entryFrame, text="Cost")
 costLabel.grid(row=2, column=0)
-costEntry = tk.Entry(entryFrame, width=25)
+costEntry = tk.Entry(entryFrame, width=50)
 costEntry.grid(row=2, column=1)
 
 ownersLabel = tk.Label(entryFrame, text="Owners")
 ownersLabel.grid(row=3, column=0)
-ownersEntry = tk.Entry(entryFrame, width=25)
+ownersEntry = tk.Entry(entryFrame, width=50)
 ownersEntry.grid(row=3, column=1)
 
 ebtLabel = tk.Label(entryFrame, text="SNAP Eligible?")
 ebtLabel.grid(row=4, column=0)
-ebtEntry = tk.Entry(entryFrame, width=25)
+ebtEntry = tk.Entry(entryFrame, width=50)
 ebtEntry.grid(row=4, column=1)
 
-itemsList = []
+whoPaidLabel = tk.Label(entryFrame, text="Who Paid?")
+whoPaidLabel.grid(row=5, column=0)
+whoPaidEntry = tk.Entry(entryFrame, width=50)
+whoPaidEntry.grid(row=5, column=1)
 
 buttonFrame = tk.Frame(root, bg="red")
 buttonFrame.place(x=100, y=150)
 
+itemsList = [] 
+ownersDebtsDict = {}
+
 # For ebt param - F: SNAP eligible not taxed, B: SNAP eligible taxed, T: Taxable (not SNAP eligible)
-def addItem(itemName, quantity, cost, owners, ebt):
-    itemDict = dict(item = itemName, quantity = quantity, cost = cost * quantity, owners = owners, snapEligible = ebt)
+def addItem(itemName, quantity, cost, owners, ebt, whoPaid):
+    itemDict = dict(item = itemName, quantity = quantity, cost = cost * quantity, owners = owners, snapEligible = ebt, whoPaid = whoPaid)
     itemsList.append(itemDict)
     # print(itemDict)
     print(itemsList)
@@ -54,6 +60,12 @@ def addItem(itemName, quantity, cost, owners, ebt):
     costEntry.delete(0, END)
     ownersEntry.delete(0, END)
     ebtEntry.delete(0, END)
+    whoPaidEntry.delete(0, END)
+    # print(owners)
+    for i in owners:
+        if i not in ownersDebtsDict:
+            ownersDebtsDict[i] = 0
+    # print(ownersDebtsDict)
 
 def deleteLastItem():
     itemsList.pop()
@@ -61,41 +73,28 @@ def deleteLastItem():
     packSlaves[-1].destroy()
 
 def calculateDebts():
-    ownerDebtA = 0
-    ownerDebtR = 0
-    ownerDebtM = 0
     for i in itemsList:
-        # print(len(i['owners']))
-        # print(i['cost'])
         itemCost = 0
         if i['snapEligible'] == 'F' or i['snapEligible'] == 'B':
-            # print('snap eligible')
-            # print(len(i['owners']))
             itemCost = i['cost'] / 3
-            # print(itemCost)
-            if 'A' in i['owners']:
-                ownerDebtA = ownerDebtA + (itemCost / len(i['owners']))
-            if 'R' in i['owners']:
-                ownerDebtR = ownerDebtR + (itemCost / len(i['owners']))
-            if 'M' in i['owners']:
-                ownerDebtM = ownerDebtM +(itemCost / len(i['owners']))
         else:
             itemCost = i['cost']
-            if 'A' in i['owners']:
-                ownerDebtA = ownerDebtA + (itemCost / len(i['owners']))
-            if 'R' in i['owners']:
-                ownerDebtR = ownerDebtR + (itemCost / len(i['owners']))
-            if 'M' in i['owners']:
-                ownerDebtM = ownerDebtM +(itemCost / len(i['owners']))
-    print("Alex's debt: ",round(ownerDebtA, 2))
-    print("Rashik's debt:",round(ownerDebtR, 2))
-    print("Matt's debt:",round(ownerDebtM, 2))
+        for j in i['owners']:
+            # print(j)
+            # print(itemCost)
+            ownersDebtsDict[j] = ownersDebtsDict[j] + itemCost / len(i['owners'])
+            print(ownersDebtsDict[j])
+    print(ownersDebtsDict)
+
+    
+
+
 
 # addItem("Cream Cheese", 2, 4.69, ['A', 'R', 'M'], "F")
 # addItem("Rice", 1, 3.69, ['R'], "T")
 # print(itemsList)
 
-addItemButton = tk.Button(buttonFrame, text="Add Item", padx=50, pady=5, command=lambda: addItem(itemEntry.get(), int(quantityEntry.get()), round(float(costEntry.get()), 2), ownersEntry.get().split(), ebtEntry.get()))
+addItemButton = tk.Button(buttonFrame, text="Add Item", padx=50, pady=5, command=lambda: addItem(itemEntry.get(), int(quantityEntry.get()), round(float(costEntry.get()), 2), ownersEntry.get().split(), ebtEntry.get(), whoPaidEntry.get()))
 addItemButton.pack()
 
 deleteLastItemButton = tk.Button(buttonFrame, text="Delete Last Item", padx=50, pady=5, command=lambda: deleteLastItem())
